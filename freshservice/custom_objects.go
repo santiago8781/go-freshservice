@@ -26,22 +26,24 @@ type CustomObjects struct {
 // CustomObjectWrapper contains Details of a CustomObject
 type CustomObjectWrapper struct {
 	Details CustomObject `json:"custom_object"`
+	Meta    Meta         `json:"meta,omitempty"`
 }
 
 type CustomObject struct {
-	ID          int       `json:"id,omitempty"`
-	Title       string    `json:"title,omitempty"`
-	Description string    `json:"description,omitempty"`
-	UpdatedAt   time.Time `json:"updated_at,omitempty"`
-	//LastUpdatedBy
+	ID            int           `json:"id,omitempty"`
+	Title         string        `json:"title,omitempty"`
+	Description   string        `json:"description,omitempty"`
+	UpdatedAt     time.Time     `json:"updated_at,omitempty"`
+	LastUpdatedBy LastUpdatedBy `json:"last_updated_by,omitempty"`
 	//Meta
 }
 
 type LastUpdatedBy struct {
-	Email  string `json:"email,omitempty"`
-	ID     int    `json:"id,omitempty"`
-	System string `json:"name,omitempty"`
+	Email string `json:"email,omitempty"`
+	ID    int    `json:"id,omitempty"`
+	Name  string `json:"name,omitempty"`
 }
+
 type Meta struct {
 	Count   int `json:"count,omitempty"`
 	Page    int `json:"page,omitempty"`
