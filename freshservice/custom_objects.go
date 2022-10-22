@@ -26,7 +26,6 @@ type CustomObjects struct {
 // CustomObjectWrapper contains Details of a CustomObject
 type CustomObjectWrapper struct {
 	Details CustomObject `json:"custom_object"`
-	Meta    Meta         `json:"meta,omitempty"`
 }
 
 type CustomObject struct {
@@ -35,7 +34,7 @@ type CustomObject struct {
 	Description   string        `json:"description,omitempty"`
 	UpdatedAt     time.Time     `json:"updated_at,omitempty"`
 	LastUpdatedBy LastUpdatedBy `json:"last_updated_by,omitempty"`
-	//Meta
+	Meta          Meta          `json:"meta,omitempty"`
 }
 
 type LastUpdatedBy struct {
