@@ -41,8 +41,6 @@ type CustomObjectRecord struct {
 	DisplayId      int       `json:"bo_display_id,omitempty"`
 	UpdatedAt      time.Time `json:"bo_updated_at,omitempty"`
 	UpdatedBy      UpdatedBy `json:"bo_updated_by,omitempty"`
-	DataSource     string    `json:"data_source_name,omitempty"`
-	DataSourceType string    `json:"data_source_id,omitempty"`
 }
 
 type CreatedBy struct {
