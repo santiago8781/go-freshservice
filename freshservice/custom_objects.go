@@ -12,7 +12,7 @@ const (
 	customObjectRecordEditUrl   = "objects/%d/records/%d" //PUT or DELETE for a specific custom object and record
 )
 
-type CustomObjectService struct {
+type CustomObjectService[T any] struct {
 	client *Client
 }
 
@@ -35,12 +35,13 @@ type Fields struct {
 }
 
 // CustomObjectRecord contains a single custom object record
-type CustomObjectRecord struct {
+type CustomObjectRecord[T any] struct {
 	CreatedAt time.Time `json:"bo_created_at,omitempty"`
 	CreatedBy CreatedBy `json:"bo_created_by,omitempty"`
 	DisplayId int       `json:"bo_display_id,omitempty"`
 	UpdatedAt time.Time `json:"bo_updated_at,omitempty"`
 	UpdatedBy UpdatedBy `json:"bo_updated_by,omitempty"`
+	T
 }
 
 type CreatedBy struct {
@@ -65,13 +66,13 @@ type CustomObjects struct {
 	Collection []CustomObject `json:"custom_objects"`
 }
 
-//CustomObjectRecordWrapper contains Details of a CustomObjectRecords
-type CustomObjectRecordWrapper struct {
-	Data CustomObjectRecord `json:"data,omitempty"`
+// CustomObjectRecordWrapper contains Details of a CustomObjectRecords
+type CustomObjectRecordWrapper[T any] struct {
+	Data CustomObjectRecord[T] `json:"data,omitempty"`
 }
 
-type CustomObjectRecordUpdate struct {
-	CustomObjectRecord CustomObjectRecord `json:"custom_object,omitempty"`
+type CustomObjectRecordUpdate[T any] struct {
+	CustomObjectRecord CustomObjectRecord[T] `json:"custom_object,omitempty"`
 }
 
 // ListCustomObjectsOptions represents filters/pagination for Products
@@ -84,22 +85,22 @@ type ListCustomObjectsOptions struct {
 }
 
 // GetCustomObjectRecords returns a list of records for a specific custom object id
-func (s *CustomObjectService) GetCustomObjectRecords(coID int64) (*CustomObjectRecords, *http.Response, error) {
-	o := new(CustomObjectRecords)
+func (s *CustomObjectService[T]) GetCustomObjectRecords(coID int64) (*CustomObjectRecords[T], *http.Response, error) {
+	o := new(CustomObjectRecords[T])
 	res, err := s.client.Get(fmt.Sprintf(customObjectRecordListUrl, coID), &o)
 	return o, res, err
 }
 
 // UpdateCustomObjectRecord will update the record(s) based on customObject id and record id
-func (s *CustomObjectService) UpdateCustomObjectRecord(coID int64, recID int64, object *CustomObjectRecordWrapper) (*CustomObjectRecordUpdate, *http.Response, error) {
-	o := new(CustomObjectRecordUpdate)
+func (s *CustomObjectService[T]) UpdateCustomObjectRecord(coID int64, recID int64, object *CustomObjectRecordWrapper[T]) (*CustomObjectRecordUpdate[T], *http.Response, error) {
+	o := new(CustomObjectRecordUpdate[T])
 	res, err := s.client.Put(fmt.Sprintf(customObjectRecordEditUrl, coID, recID), object, o)
 	return o, res, err
 }
 
 // CreateCustomObjectRecord will create a custom object record based on the custom object id.
-func (s *CustomObjectService) CreateCustomObjectRecord(coID int64, newCustomObjectRecord *CustomObjectRecordWrapper) (*CustomObjectRecordUpdate, *http.Response, error) {
-	o := new(CustomObjectRecordUpdate)
+func (s *CustomObjectService[T]) CreateCustomObjectRecord(coID int64, newCustomObjectRecord *CustomObjectRecordWrapper[T]) (*CustomObjectRecordUpdate[T], *http.Response, error) {
+	o := new(CustomObjectRecordUpdate[T])
 	res, err := s.client.Post(fmt.Sprintf(customObjectRecordCreateUrl, coID), newCustomObjectRecord, o)
 	return o, res, err
 }
