@@ -55,10 +55,10 @@ type UpdatedBy struct {
 }
 
 // CustomObjectRecords contains an array of CustomObject
-type CustomObjectRecords struct {
-	Collection   []CustomObjectRecordWrapper `json:"records,omitempty"`
-	NextPageLink string                      `json:"next_page_link,omitempty"`
-	Meta         map[string]interface{}      `json:"meta,omitempty"`
+type CustomObjectRecords[T any] struct {
+	Collection   []CustomObjectRecordWrapper[T] `json:"records,omitempty"`
+	NextPageLink string                         `json:"next_page_link,omitempty"`
+	Meta         map[string]interface{}         `json:"meta,omitempty"`
 }
 
 // CustomObjects contains Collection an array of CustomObject
