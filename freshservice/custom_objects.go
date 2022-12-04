@@ -36,11 +36,12 @@ type Fields struct {
 
 // CustomObjectRecord contains a single custom object record
 type CustomObjectRecord[T any] struct {
-	CreatedAt time.Time `json:"bo_created_at,omitempty"`
-	CreatedBy CreatedBy `json:"bo_created_by,omitempty"`
-	DisplayId int       `json:"bo_display_id,omitempty"`
-	UpdatedAt time.Time `json:"bo_updated_at,omitempty"`
-	UpdatedBy UpdatedBy `json:"bo_updated_by,omitempty"`
+	CreatedAt  time.Time `json:"bo_created_at,omitempty"`
+	CreatedBy  CreatedBy `json:"bo_created_by,omitempty"`
+	DisplayId  int       `json:"bo_display_id,omitempty"`
+	UpdatedAt  time.Time `json:"bo_updated_at,omitempty"`
+	UpdatedBy  UpdatedBy `json:"bo_updated_by,omitempty"`
+	DataSource T
 }
 
 type CreatedBy struct {
