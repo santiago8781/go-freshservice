@@ -41,7 +41,6 @@ type CustomObjectRecord[T any] struct {
 	DisplayId int       `json:"bo_display_id,omitempty"`
 	UpdatedAt time.Time `json:"bo_updated_at,omitempty"`
 	UpdatedBy UpdatedBy `json:"bo_updated_by,omitempty"`
-	T
 }
 
 type CreatedBy struct {
@@ -106,7 +105,7 @@ func (s *CustomObjectService[T]) CreateCustomObjectRecord(coID int64, newCustomO
 }
 
 // DeleteCustomObjectRecord will delete a custom object record based on custom object id and record id
-func (s *CustomObjectService) DeleteCustomObjectRecord(coID int64, recID int64) (bool, *http.Response, error) {
+func (s *CustomObjectService[T]) DeleteCustomObjectRecord(coID int64, recID int64) (bool, *http.Response, error) {
 	success, res, err := s.client.Delete(fmt.Sprintf(customObjectRecordEditUrl, coID, recID))
 	return success, res, err
 }
