@@ -1,112 +1,93 @@
 package freshservice
 
 import (
+	"context"
 	"fmt"
-	"net/http"
+	"net/url"
 	"time"
-)
-
-const (
-	customObjectRecordCreateUrl = "objects/%d/records"    //POST create records for a specific custom object
-	customObjectRecordListUrl   = "objects/%d/records"    //GET list records for a specific custom object
-	customObjectRecordEditUrl   = "objects/%d/records/%d" //PUT or DELETE for a specific custom object and record
 )
 
 type CustomObjectService[T any] struct {
 	client *Client
 }
 
-type CustomObject struct {
-	ID          int64    `json:"id,omitempty"`
-	Name        string   `json:"name,omitempty"`
-	Title       string   `json:"title,omitempty"`
-	Description string   `json:"description,omitempty"`
-	Fields      []Fields `json:"fields,omitempty"`
-	Meta        int      `json:"total_records_count,omitempty"`
+func (svc *CustomObjectService[T]) CreateCustomObjectRecord(ctx context.Context, customObjectID int, request CreateCustomObjectRecordRequest[T]) (CreateCustomObjectRecordResponse[T], error) {
+	var response CreateCustomObjectRecordResponse[T]
+	_, err := svc.client.Post(fmt.Sprintf("objects/%d/records", customObjectID), request, &response)
+	if err != nil {
+		return CreateCustomObjectRecordResponse[T]{}, err
+	}
+	return response, nil
 }
 
-type Fields struct {
-	Name     string   `json:"name,omitempty"`
-	Label    string   `json:"label,omitempty"`
-	Type     string   `json:"type,omitempty"`
-	Required bool     `json:"required,omitempty"`
-	Choices  []string `json:"choices,omitempty"`
-	Meta     string   `json:"meta,omitempty"`
+func (svc *CustomObjectService[T]) ListCustomObjectRecords(ctx context.Context, customObjectID int, pageSize int) (ListCustomObjectRecordsResponse[T], error) {
+	u := fmt.Sprintf("objects/%d/records", customObjectID)
+	if pageSize > 0 {
+		u = fmt.Sprintf("objects/%d/records?page_size=%d", customObjectID, pageSize)
+	}
+	var response ListCustomObjectRecordsResponse[T]
+	_, err := svc.client.Get(u, &response)
+	if err != nil {
+		return ListCustomObjectRecordsResponse[T]{}, err
+	}
+	return response, nil
 }
 
-// CustomObjectRecord contains a single custom object record
+func (svc *CustomObjectService[T]) UpdateCustomObjectRecord(ctx context.Context, customObjectID int, customObjectRecordID int, request UpdateCustomObjectRecordRequest[T]) (UpdateCustomObjectRecordResponse[T], error) {
+	var response UpdateCustomObjectRecordResponse[T]
+	_, err := svc.client.Put(fmt.Sprintf("objects/%d/records/%d", customObjectID, customObjectRecordID), request, &response)
+	if err != nil {
+		return UpdateCustomObjectRecordResponse[T]{}, err
+	}
+	return response, nil
+}
+
+func (svc *CustomObjectService[T]) DeleteCustomObjectRecord(ctx context.Context, customObjectID int, customObjectRecordID int) error {
+	success, _, err := svc.client.Delete(fmt.Sprintf("objects/%d/records/%d", customObjectID, customObjectRecordID))
+	if err != nil {
+		return err
+	}
+	if !success {
+		return fmt.Errorf("failed to delete custom object record: %d in custom object: %d", customObjectRecordID, customObjectID)
+	}
+	return nil
+}
+
+type customObjectRecordRequest[T any] struct {
+	Data T `json:"data"`
+}
+
+type customObjectRecordResponse[T any] struct {
+	CustomObject CustomObjectRecord[T] `json:"custom_object"`
+}
+
+type CreateCustomObjectRecordRequest[T any] struct {
+	customObjectRecordRequest[T]
+}
+
+type CreateCustomObjectRecordResponse[T any] struct {
+	customObjectRecordResponse[T]
+}
+
+type ListCustomObjectRecordsResponse[T any] struct {
+	Records []CustomObjectRecord[T] `json:"records"`
+}
+
+type UpdateCustomObjectRecordRequest[T any] struct {
+	customObjectRecordRequest[T]
+}
+
+type UpdateCustomObjectRecordResponse[T any] struct {
+	customObjectRecordResponse[T]
+}
+
 type CustomObjectRecord[T any] struct {
-	CreatedAt  time.Time `json:"bo_created_at,omitempty"`
-	CreatedBy  CreatedBy `json:"bo_created_by,omitempty"`
-	DisplayId  int       `json:"bo_display_id,omitempty"`
-	UpdatedAt  time.Time `json:"bo_updated_at,omitempty"`
-	UpdatedBy  UpdatedBy `json:"bo_updated_by,omitempty"`
-	DataSource T
+	Data     T        `json:"data"`
+	NextPage *url.URL `json:"next_page_link"`
 }
 
-type CreatedBy struct {
-	Id    int    `json:"id,omitempty"`
-	Value string `json:"value,omitempty"`
-}
-
-type UpdatedBy struct {
-	ID    int    `json:"id,omitempty"`
-	Value string `json:"value,omitempty"`
-}
-
-// CustomObjectRecords contains an array of CustomObject
-type CustomObjectRecords[T any] struct {
-	Collection   []CustomObjectRecordWrapper[T] `json:"records,omitempty"`
-	NextPageLink string                         `json:"next_page_link,omitempty"`
-	Meta         map[string]interface{}         `json:"meta,omitempty"`
-}
-
-// CustomObjects contains Collection an array of CustomObject
-type CustomObjects struct {
-	Collection []CustomObject `json:"custom_objects"`
-}
-
-// CustomObjectRecordWrapper contains Details of a CustomObjectRecords
-type CustomObjectRecordWrapper[T any] struct {
-	Data CustomObjectRecord[T] `json:"data,omitempty"`
-}
-
-type CustomObjectRecordUpdate[T any] struct {
-	CustomObjectRecord CustomObjectRecord[T] `json:"custom_object,omitempty"`
-}
-
-// ListCustomObjectsOptions represents filters/pagination for Products
-type ListCustomObjectsOptions struct {
-	ListOptions
-	Email        *string    `json:"email,omitempty" url:"email,omitempty"`
-	RequesterID  *int       `json:"requester_id,omitempty" url:"requester_id,omitempty"`
-	UpdatedSince *time.Time `json:"updated_since,omitempty" url:"updated_since,omitempty"`
-	Type         *string    `json:"type,omitempty" url:"type,omitempty"`
-}
-
-// GetCustomObjectRecords returns a list of records for a specific custom object id
-func (s *CustomObjectService[T]) GetCustomObjectRecords(coID int64) (*CustomObjectRecords[T], *http.Response, error) {
-	o := new(CustomObjectRecords[T])
-	res, err := s.client.Get(fmt.Sprintf(customObjectRecordListUrl, coID), &o)
-	return o, res, err
-}
-
-// UpdateCustomObjectRecord will update the record(s) based on customObject id and record id
-func (s *CustomObjectService[T]) UpdateCustomObjectRecord(coID int64, recID int64, object *CustomObjectRecordWrapper[T]) (*CustomObjectRecordUpdate[T], *http.Response, error) {
-	o := new(CustomObjectRecordUpdate[T])
-	res, err := s.client.Put(fmt.Sprintf(customObjectRecordEditUrl, coID, recID), object, o)
-	return o, res, err
-}
-
-// CreateCustomObjectRecord will create a custom object record based on the custom object id.
-func (s *CustomObjectService[T]) CreateCustomObjectRecord(coID int64, newCustomObjectRecord *CustomObjectRecordWrapper[T]) (*CustomObjectRecordUpdate[T], *http.Response, error) {
-	o := new(CustomObjectRecordUpdate[T])
-	res, err := s.client.Post(fmt.Sprintf(customObjectRecordCreateUrl, coID), newCustomObjectRecord, o)
-	return o, res, err
-}
-
-// DeleteCustomObjectRecord will delete a custom object record based on custom object id and record id
-func (s *CustomObjectService[T]) DeleteCustomObjectRecord(coID int64, recID int64) (bool, *http.Response, error) {
-	success, res, err := s.client.Delete(fmt.Sprintf(customObjectRecordEditUrl, coID, recID))
-	return success, res, err
+type CustomObjectRecordMetadata struct {
+	CreatedAt time.Time `json:"bo_created_at,omitempty"`
+	DisplayId int       `json:"bo_display_id,omitempty"`
+	UpdatedAt time.Time `json:"bo_updated_at,omitempty"`
 }
