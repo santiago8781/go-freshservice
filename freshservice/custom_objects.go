@@ -42,7 +42,7 @@ func (svc *CustomObjectService[T]) UpdateCustomObjectRecord(ctx context.Context,
 	return response, nil
 }
 
-func (svc *CustomObjectService[T]) DeleteCustomObjectRecord(ctx context.Context, customObjectID int, customObjectRecordID int) error {
+func (svc *CustomObjectService[T]) DeleteCustomObjectRecord(ctx context.Context, customObjectID int, customObjectRecordID string) error {
 	success, _, err := svc.client.Delete(fmt.Sprintf("objects/%d/records/%d", customObjectID, customObjectRecordID))
 	if err != nil {
 		return err
